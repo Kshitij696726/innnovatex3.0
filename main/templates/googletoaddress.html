@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Get Coordinates from Place Data</title>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAA0MBg54do52MdtveZrqldoHSkKakLCYM&libraries=places&callback=initMap"></script>  
+    <script>
+        let geocoder;
+
+        function initMap() {
+            geocoder = new google.maps.Geocoder();
+        }
+
+        function getCoordinates(place) {
+            if (!geocoder) {
+                console.error("Geocoder not initialized.");
+                return;
+            }
+
+            geocoder.geocode({ 'address': place }, (results, status) => {
+                if (status === 'OK' && results && results.length > 0) {
+                    const latitude = results[0].geometry.location.lat();
+                    const longitude = results[0].geometry.location.lng();
+                    document.getElementById('output').innerText = `Coordinates for "${place}": Latitude: ${latitude}, Longitude: ${longitude}`;
+                } else {
+                    document.getElementById('output').innerText = `Geocode was not successful for the following reason: ${status}`;
+                }
+            });
+        }
+
+        function findCoordinates() {
+            const placeInput = document.getElementById('pickup');
+            const placeValue = placeInput.value.trim();
+            if (placeValue) {
+                getCoordinates(placeValue);
+            } else {
+                document.getElementById('output').innerText = "Please enter a place.";
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Get Coordinates from Place Data</h1>
+
+    <div>
+        <label for="placeInput">Enter a Place:</label>
+        <input type="text" id="placeInput" size="50" placeholder="e.g., 1600 Amphitheatre Parkway, Mountain View, CA">
+        <button onclick="findCoordinates()">Get Coordinates</button>
+    </div>
+
+    <div id="output"></div>
+
+</body>
+</html>

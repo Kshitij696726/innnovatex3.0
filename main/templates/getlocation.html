@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Geolocation Example</title>
+    <script>
+        let locationRequestActive = false;
+
+        function getLocation() {
+            if (locationRequestActive) return;
+
+            const outputEl = document.getElementById("output");
+            outputEl.innerText = "Please allow location access...";
+            locationRequestActive = true;
+
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    locationRequestActive = false;
+                    outputEl.innerText = `Location: ${pos.coords.latitude}, ${pos.coords.longitude}`;
+                },
+                (err) => {
+                    locationRequestActive = false;
+                    if (err.code !== err.TIMEOUT) {
+                        outputEl.innerText = `Error: ${err.message}`;
+                    }
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 15000,
+                    maximumAge: 60000
+                }
+            );
+        }
+    </script>
+</head>
+
+<body>
+    <button onclick="getLocation()">Get Location</button>
+</body>
+
+</html>

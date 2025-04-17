@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Booking Confirmation{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-body text-center p-5">
+                    <h1 class="text-success mb-4">Booking Confirmed!</h1>
+                    <i class="bi bi-check-circle-fill text-success" style="font-size: 5rem;"></i>
+
+                    <div id = "location-aware-content" class = "mb-4 p-3 bg-light rounded">
+                        <p class = "mb-2">Your current location: <span id = "location-status">Searching your location...</span></p>
+                        <button onclick="getLocation()" class = "btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-geo-alt"></i> Refresh Location
+                        </button>
+                    </div>
+                    
+                    <div class="card mt-4">
+                        <div class="card-body text-start">
+                            <h4 class="card-title">Booking Details</h4>
+                            <hr>
+                            <p><strong>Provider:</strong> {{ booking.provider }}</p>
+                            <p><strong>Pickup:</strong> {{ booking.pickup }}</p>
+                            <p><strong>Dropoff:</strong> {{ booking.dropoff }}</p>
+                            <p><strong>Time:</strong> {{ booking.pickup_time }}</p>
+                            <p><strong>Passengers:</strong> {{ booking.passengers }}</p>
+                            <p><strong>Vehicle Type:</strong> {{ booking.vehicle_type|capitalize }}</p>
+                            <p><strong>Status:</strong> <span class="badge bg-success">{{ booking.status }}</span></p>
+                            <p><strong>Booking ID:</strong> {{ booking.id }}</p>
+                        </div>
+                    </div>
+                    
+                    <a href="{{ url_for('home') }}" class="btn btn-primary mt-4">Back to Home</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

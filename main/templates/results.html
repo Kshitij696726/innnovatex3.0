@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Search Results{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Available Taxis</h2>
+    <p class="text-muted">Showing results for your trip</p>
+    
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5>{{ session['search_params']['pickup'] }}</h5>
+                            <h5>→</h5>
+                            <h5>{{ session['search_params']['dropoff'] }}</h5>
+                        </div>
+                        <div class="text-end">
+                            <p>{{ session['search_params']['pickup_time'] }}</p>
+                            <p>{{ session['search_params']['passengers'] }} passenger(s)</p>
+                            <p>{{ session['search_params']['vehicle_type']|capitalize }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class = "alert alert-warning">
+        No taxis available for your route at this time
+    </div>
+    
+    <div class="row">
+        {% for quote in quotes %}
+        <div class="col-md-6 mb-4">
+            <div class="card taxi-card h-100">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-3 text-center">
+                            <img src="https://via.placeholder.com/80" alt="{{ quote.provider }}" class="img-fluid">
+                        </div>
+                        <div class="col-6">
+                            <h5>{{ quote.provider }}</h5>
+                            <p class="mb-1">{{ quote.vehicle_type }}</p>
+                            <p class="mb-1"><small>ETA: {{ quote.eta }}</small></p>
+                            <p class="mb-1"><small>Distance: {{ quote.distance }}</small></p>
+                            <span class = "badge bg-danger">Surge Pricing</span>
+                        </div>
+                        <div class="col-3 text-end">
+                            <h4 class="text-primary">₹{{ quote.price }}</h4>
+                            <a href="{{ url_for('book', provider=quote.provider) }}" class="btn btn-sm btn-primary">Book Now</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="hero text-center">
+    <div class="container">
+        <h1 class="display-4">Compare Taxi Prices</h1>
+        <p class="lead">Find the best deals from multiple taxi providers</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <h2 class="card-title text-center mb-4">Where would you like to go?</h2>
+                    <form method="POST" action="{{ url_for('search') }}">
+                        <div class="row g-3">
+                            <!-- Pickup Location Section -->
+                            <div class="col-md-6">
+                                <label for="pickup" class="form-label fw-bold">Pickup Location</label>
+                                <div class="input-group mb-3">
+                                    <input type="hidden" id = "pickup_coords" name = "pickup_coords" value = "{{session.get('user_latitude', '')}}, {{ session.get('user_longitude', '') }}">
+                                    <input type="text" class="form-control" id="pickup" name="pickup" required placeholder="Enter pickup address">
+                                    <button class="btn btn-outline-primary" type="button" onclick="getLocation()">
+                                        <i class="bi bi-geo-alt-fill me-1"></i>Use My Location
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Dropoff Location Section -->
+                            <div class="col-md-6">
+                                <label for="dropoff" class="form-label fw-bold">Dropoff Location</label>
+                                <div class="input-group mb-3">
+                                    <input type="text" class="form-control" id="dropoff" name="dropoff" required placeholder="Enter destination address">
+                                    <button class="btn btn-outline-primary" type="button" onclick="convertToCoordinates()">
+                                        <i class="bi bi-geo-alt-fill me-1"></i>Get Coordinates
+                                    </button>
+                                </div>
+                                <input type="hidden" id="dropoff_coords" name="dropoff_coords">
+                                <div id="coordinates-display" class="text-muted small mt-1"></div>
+                            </div>
+                            
+                            <!-- Form Options Section -->
+                            <div class="col-md-4">
+                                <label for="pickup_time" class="form-label fw-bold">Pickup Time</label>
+                                <input type="datetime-local" class="form-control" id="pickup_time" name="pickup_time" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="passengers" class="form-label fw-bold">Passengers</label>
+                                <select class="form-select" id="passengers" name="passengers">
+                                    <option value="1" selected>1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="vehicle_type" class="form-label fw-bold">Vehicle Type</label>
+                                <select class="form-select" id="vehicle_type" name="vehicle_type">
+                                    <option value="standard" selected>Standard</option>
+                                    <option value="premium">Premium</option>
+                                    <option value="xl">XL</option>
+                                    <option value="luxury">Luxury</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Submit Button -->
+                            <div class="col-12 mt-4">
+                                <button type="submit" class="btn btn-primary w-100 py-3 fw-bold">Search Taxis</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAA0MBg54do52MdtveZrqldoHSkKakLCYM&callback=initGeocoder"></script>
+<script>
+    let geocoder;
+    let locationPermissionDenied = false;
+
+    function initGeocoder() {
+        geocoder = new google.maps.Geocoder();
+    }
+
+    function convertToCoordinates() {
+        const address = document.getElementById('dropoff').value.trim();
+        if (!address) {
+            alert("Please enter an address first");
+            return;
+        }
+
+        if (!geocoder) {
+            alert("Geocoder not initialized. Please try again later.");
+            return;
+        }
+
+        geocoder.geocode({ 'address': address }, (results, status) => {
+            const display = document.getElementById('coordinates-display');
+            if (status === 'OK' && results && results.length > 0) {
+                const location = results[0].geometry.location;
+                const lat = location.lat();
+                const lng = location.lng();
+                const coords = `${lat},${lng}`;
+                
+                document.getElementById('dropoff_coords').value = coords;
+                display.textContent = `Coordinates: ${coords}`;
+                display.style.color = 'green';
+            } else {
+                display.textContent = `Could not find coordinates for this address (${status})`;
+                display.style.color = 'red';
+                document.getElementById('dropoff_coords').value = '';
+            }
+        });
+    }
+
+    function getLocation() {
+        if (navigator.geolocation) {
+            // Check if we've already been denied permission
+            if (locationPermissionDenied) {
+                alert("Location permission was previously denied. Please enable it in your browser settings.");
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+
+                    document.getElementById('pickup_coords').value = `${latitude},${longitude}`;
+
+                    
+                    // Reverse geocode to get address
+                    geocoder.geocode(
+                        { 'location': { lat: latitude, lng: longitude } },
+                        (results, status) => {
+                            if (status === 'OK') {
+                                if (results[0]) {
+                                    document.getElementById('pickup').value = results[0].formatted_address;
+                                } else {
+                                    console.log('No results found');
+                                }
+                            } else {
+                                console.log('Geocoder failed due to: ' + status);
+                            }
+                        }
+                    );
+                },
+                (error) => {
+                    console.error("Error getting location: ", error);
+                    // Only show alert for permanent denials or unsupported cases
+                    if (error.code === error.PERMISSION_DENIED) {
+                        locationPermissionDenied = true;
+                        alert("Location access was denied. Please enable location permissions in your browser settings to use this feature.");
+                    } else if (error.code === error.POSITION_UNAVAILABLE || error.code === error.TIMEOUT) {
+                        console.log("Location information unavailable or request timed out");
+                    }
+                },
+                { 
+                    // Optional: set timeout and maximum age for cached position
+                    timeout: 10000,
+                    maximumAge: 60000
+                }
+            );
+        } else {
+            alert("Geolocation is not supported by this browser.");
+        }
+    }
+</script>
+{% endblock %}
